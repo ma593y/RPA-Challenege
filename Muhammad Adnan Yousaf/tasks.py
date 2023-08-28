@@ -10,6 +10,7 @@ def new_york_times_automation():
         new_york_times.select_news_sections()
         new_york_times.select_date_range()
         new_york_times.extract_searched_results()
+        new_york_times.save_search_results_data()
     except Exception as e:
         print(f"Exception: {e}")
     finally:
