@@ -1,0 +1,36 @@
+name: Upload to Control Room & Trigger a process in Control Room
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  upload-to-control-room:
+    runs-on: ubuntu-latest
+    name: Upload to Control Room
+    steps:
+      - uses: actions/checkout@master
+      - name: Use Node.js 12.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+      - name: Upload Robot to Control Room
+        uses: robocorp/action-upload-robot@v1
+        with:
+          workspace-key: ${{ secrets.ROBOCORP_WORKSPACE_KEY }}
+          workspace-id: ${{ secrets.ROBOCORP_WORKSPACE_ID }}
+          robot-id: ${{ secrets.ROBOCORP_ROBOT_ID }}
+
+  run-process:
+    runs-on: ubuntu-latest
+    name: Trigger process
+    steps:
+      - name: Trigger Control Room process run
+        uses: robocorp/action-trigger-process@v1
+        with:
+          api-key: ${{ secrets.ROBOCORP_WORKSPACE_KEY }}
+          workspace-id: ${{ secrets.ROBOCORP_WORKSPACE_ID }}
+          process-id: ${{ secrets.ROBOCORP_PROCESS_ID }}
+          payload: '{"foo":"bar"}'
+          await-complete: true
