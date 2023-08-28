@@ -1,6 +1,6 @@
 from robocorp.tasks import task
 
 @task
-def minimal_task():
+def new_york_times_automation():
     message = "Hello"
     message = message + " World!"
