@@ -1,4 +1,6 @@
 from RPA.Browser.Selenium import Selenium
+from RPA.Excel.Files import Files
+from RPA.HTTP import HTTP
 
 
 class NewYorkTimes:
@@ -9,6 +11,13 @@ class NewYorkTimes:
         self.searh_phrase = "industry"
         self.news_sections = ["Arts", "Books"]
         self.number_of_months = 0
+
+        self.search_results_data = {
+            "title": [],
+            "description": [],	
+            "date": [],
+            "picture filename": []
+        }
 
         self.sort_by = "newest"
 
@@ -37,7 +46,8 @@ class NewYorkTimes:
     
     def open_website_and_search(self):
         self.browser.open_chrome_browser("https://www.nytimes.com/", maximized=True, headless=False)
-        self.browser.click_button(self.terms_dialogue_selector)
+        self.browser.click_element_if_visible(self.terms_dialogue_selector)
+        # self.browser.click_button(self.terms_dialogue_selector)
         self.browser.click_button(self.search_icon_selector)
         self.browser.input_text(self.search_input_box_selector, self.searh_phrase)
         self.browser.press_keys(self.search_input_box_selector, "ENTER")
@@ -66,16 +76,33 @@ class NewYorkTimes:
         self.browser.press_keys(self.end_date_input_selector, "ENTER")
 
     
-    def extract_searched_results(self):        
+    def extract_searched_results(self):
         search_results = self.browser.find_elements('css:li.css-1l4w6pd')
         for result in search_results:
-            _date = self.browser.get_text(self.browser.get_webelement("css:span.css-17ubb9w", result))
-            _title = self.browser.get_text(self.browser.get_webelement("css:h4.css-2fgx4k", result))
-            _description = self.browser.get_text(self.browser.get_webelement("css:p.css-16nhkrn", result))
-            # _image = self.browser.screenshot(self.browser.get_webelement("css:img.css-rq4mmj", result))
-            _image_url = self.browser.get_element_attribute(self.browser.get_webelement("css:img.css-rq4mmj", result), "src")
-            print("\n", _date, "\n", _title, "\n", _description, "\n", _image_url, "\n")
-            break
+            try:
+                _title = self.browser.get_text(self.browser.get_webelement("css:h4.css-2fgx4k", result))
+                _description = self.browser.get_text(self.browser.get_webelement("css:p.css-16nhkrn", result))
+                _date = self.browser.get_text(self.browser.get_webelement("css:span.css-17ubb9w", result))
+                _image_url = self.browser.get_element_attribute(self.browser.get_webelement("css:img.css-rq4mmj", result), "src")
+                _image_file_name = _image_url.split("?")[0].split("/")[-1]
+                HTTP().download(url=_image_url, target_file=f"./output/images/{_image_file_name}", overwrite=True)
+                
+                self.search_results_data["title"].append(_title)
+                self.search_results_data["description"].append(_description)
+                self.search_results_data["date"].append(_date)
+                self.search_results_data["picture filename"].append(_image_file_name)
+                
+                print("\n", _date, "\n", _title, "\n", _description, "\n", _image_url, "\n", _image_file_name, "\n")
+            except Exception as e:
+                print(f"Exception: {e}")
+
+
+    def save_search_results_data(self):
+        lib = Files()
+        lib.open_workbook("./output/Search_Results.xlsx")
+        lib.read_worksheet("Sheet1")
+        lib.append_rows_to_worksheet(self.search_results_data)
+        lib.save_workbook()
 
 
     def close_all(self):
