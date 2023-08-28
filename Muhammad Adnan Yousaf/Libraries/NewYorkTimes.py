@@ -99,7 +99,10 @@ class NewYorkTimes:
 
     def save_search_results_data(self):
         lib = Files()
-        lib.open_workbook("./output/Search_Results.xlsx")
+        try:
+            lib.open_workbook("./output/Search_Results.xlsx")
+        except:
+            lib.create_workbook(path="./output/Search_Results.xlsx", sheet_name="Sheet1")
         lib.read_worksheet("Sheet1")
         lib.append_rows_to_worksheet(self.search_results_data)
         lib.save_workbook()
